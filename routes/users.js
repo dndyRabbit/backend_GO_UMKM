@@ -1,46 +1,84 @@
 const express = require("express");
 const router = express.Router();
-const { users } = require("../models");
-const bcrypt = require("bcrypt");
+const { users, verifies } = require("../models");
+const bcrypt = require("bcryptjs");
 const { validateToken } = require("../middlewares/authMiddleware");
 
 const { sign } = require("jsonwebtoken");
 
-router.post("/", async (req, res) => {
-	const { username, password } = req.body;
-	bcrypt.hash(password, 10).then((hash) => {
-		users.create({
+router.post("/register", async (req, res) => {
+	const { username, email, fullName, phoneNumber, password } = req.body;
+	if (username.includes("@"))
+		return res.json({ error: "cannot input @/.,()|][" });
+	if (username.length <= 4) return res.json({ error: "username minimum 5" });
+
+	if (!email.includes("@"))
+		return res.json({ error: "email must include '@' " });
+
+	if (!password) res.json({ error: "input your password" });
+	if (password.length <= 5) return res.json({ error: "password minimum 5" });
+
+	const hashedPassword = await bcrypt.hash(password, 10);
+	try {
+		await users.create({
 			username,
-			password: hash,
+			email,
+			fullName,
+			phoneNumber,
+			password: hashedPassword,
 		});
-		res.json("HASHED SUCCESS");
-	});
+		res.json("REGISTERED SUCCESS");
+	} catch (error) {
+		if (error.errors[0].message === "username must be unique") {
+			res.json({ error: "Username already Exists!" });
+		} else if (error.errors[0].message === "email must be unique") {
+			res.json({ error: "Email already is used!" });
+		}
+	}
 });
 
 router.post("/login", async (req, res) => {
-	const { username, password } = req.body;
+	const { usernameOrEmail, password } = req.body;
 
-	const user = await users.findOne({ where: { username } });
+	const user = await users.findOne(
+		usernameOrEmail.includes("@")
+			? { where: { email: usernameOrEmail } }
+			: { where: { username: usernameOrEmail } }
+	);
 
-	if (!user) res.json({ error: "user Doesn't exists" });
+	if (!user) return res.json({ error: "Username or Password is wrong!" });
 
-	bcrypt.compare(password, user.password).then((match) => {
-		if (!match)
+	await bcrypt
+		.compare(password, user.password)
+		.then((match) => {
+			if (!match)
+				res.json({
+					error: "Username or Password is wrong!",
+				});
+
+			const accessToken = sign(
+				{ username: user.username, id: user.id },
+				"importantsecret"
+			);
+
 			res.json({
-				error: "Wrong Username and Password Combination!",
+				token: accessToken,
+				username: usernameOrEmail,
+				id: user.id,
 			});
-
-		const accessToken = sign(
-			{ username: user.username, id: user.id },
-			"importantsecret"
-		);
-
-		res.json({ token: accessToken, username: username, id: user.id });
-	});
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 });
 
-router.get("/auth", validateToken, (req, res) => {
-	res.json(req.user);
+router.get("/auth", validateToken, async (req, res) => {
+	const user = await users.findOne({
+		where: { username: req.user.username },
+		include: [verifies],
+		attributes: { exclude: ["password"] },
+	});
+	res.json(user);
 });
 
 router.get("/basicInfo/:id", async (req, res) => {
