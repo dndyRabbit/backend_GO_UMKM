@@ -8,17 +8,21 @@ const env = process.env.NODE_ENV || "development";
 const config = require(__dirname + "/../config/config.json")[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-	sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-	sequelize = new Sequelize(
-		config.database,
-		config.username,
-		config.password,
-		config
-	);
-}
+// if (config.use_env_variable) {
+// 	sequelize = new Sequelize(process.env[config.use_env_variable], config);
+// } else {
+// 	sequelize = new Sequelize(
+// 		config.database,
+// 		config.username,
+// 		config.password,
+// 		config
+// 	);
+// }
+
+const sequelize = new Sequelize("react_fullstack", "dendy", "n7farrasi", {
+	host: "127.0.0.1",
+	dialect: "mysql",
+});
 
 fs.readdirSync(__dirname)
 	.filter((file) => {
