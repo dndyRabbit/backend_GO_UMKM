@@ -1,9 +1,9 @@
 {
 	"development": {
-		"username": "root",
-		"password": "",
+		"username": "dendy",
+		"password": "n7farrasi",
 		"database": "react_fullstack",
-		"host": "127.0.0.1",
+		"host": "localhost",
 		"dialect": "mysql"
 	},
 	"test": {
