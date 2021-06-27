@@ -3,6 +3,8 @@ const app = express();
 const cors = require("cors");
 const path = require("path");
 
+const PORT = 3001;
+
 require("dotenv").config();
 
 app.use(express.json());
@@ -44,8 +46,8 @@ app.use("api/likes", likesRouter);
 db.sequelize
 	.sync()
 	.then(() => {
-		app.listen(process.env.PORT || 3001, () => {
-			console.log(`Server started on port 3001`);
+		app.listen(process.env.PORT || PORT, () => {
+			console.log(`Server started on port ${PORT}`);
 		});
 	})
 	.catch((err) => {
