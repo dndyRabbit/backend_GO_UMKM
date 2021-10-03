@@ -15,8 +15,11 @@ router.post("/register", async (req, res) => {
 	if (!email.includes("@"))
 		return res.json({ error: "email must include '@' " });
 
-	if (!password) res.json({ error: "input your password" });
-	if (password.length <= 5) return res.json({ error: "password minimum 5" });
+	if (!password) return res.json({ error: "input your password" });
+	if (password.length < 5) return res.json({ error: "password minimum 5" });
+
+	if (phoneNumber.length > 15)
+		return res.json({ error: "Phonenumber maximum 15 angka" });
 
 	const hashedPassword = await bcrypt.hash(password, 10);
 	try {
@@ -46,13 +49,13 @@ router.post("/login", async (req, res) => {
 			: { where: { username: usernameOrEmail } }
 	);
 
-	if (!user) return res.json({ error: "Username or Password is wrong!" });
+	if (!user) return res.json({ error: "User tidak terdaftar" });
 
 	await bcrypt
 		.compare(password, user.password)
 		.then((match) => {
 			if (!match)
-				res.json({
+				return res.json({
 					error: "Username or Password is wrong!",
 				});
 
@@ -68,7 +71,7 @@ router.post("/login", async (req, res) => {
 			});
 		})
 		.catch((err) => {
-			console.log(err);
+			return res.json({ error: "Username or Password is wrong!" });
 		});
 });
 

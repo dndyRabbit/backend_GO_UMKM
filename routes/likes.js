@@ -11,12 +11,12 @@ router.post("/", validateToken, async (req, res) => {
 
 	if (!found) {
 		await likes.create({ postId, userId });
-		res.json({ liked: true });
+		return res.json({ liked: true });
 	} else {
 		await likes.destroy({
 			where: { postId, userId },
 		});
-		res.json({ liked: false });
+		return res.json({ liked: false });
 	}
 
 	res.json("Success");

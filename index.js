@@ -23,25 +23,25 @@ app.use(imageUploader.upload.single("image"));
 
 //Routers
 const postsRouter = require("./routes/posts");
-app.use("api/posts", postsRouter);
+app.use("/posts", postsRouter);
 
 const verifyRouter = require("./routes/verifying");
-app.use("api/verifies", verifyRouter);
+app.use("/verifies", verifyRouter);
 
 const commentsRouter = require("./routes/comments");
-app.use("api/comments", commentsRouter);
+app.use("/comments", commentsRouter);
 
 const usersRouter = require("./routes/users");
-app.use("api/auth", usersRouter);
+app.use("/auth", usersRouter);
 
 const profileRouter = require("./routes/profile");
-app.use("api/profile", profileRouter);
+app.use("/profile", profileRouter);
 
 const adminsRouter = require("./routes/admins");
-app.use("api/authAdmins", adminsRouter);
+app.use("/authAdmins", adminsRouter);
 
 const likesRouter = require("./routes/likes");
-app.use("api/likes", likesRouter);
+app.use("/likes", likesRouter);
 
 db.sequelize
 	.sync()

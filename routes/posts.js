@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { posts, likes } = require("../models");
 const { validateToken } = require("../middlewares/authMiddleware");
+const fs = require("fs");
+const path = require("path");
 
 router.post("/", validateToken, async (req, res) => {
 	if (!req.file) {
@@ -9,8 +11,11 @@ router.post("/", validateToken, async (req, res) => {
 	}
 
 	const post = req.body;
+
+	if (post.harga.length >= 11)
+		return res.json({ error: "Inputan hanya bisa 11" });
+
 	post.image = req.file.path;
-	post.username = req.user.username;
 	post.userId = req.user.id;
 	await posts.create(post);
 	res.json(post);
@@ -142,13 +147,31 @@ router.put("/update", validateToken, async (req, res) => {
 router.delete("/:id", validateToken, async (req, res) => {
 	const id = req.params.id;
 
-	await posts.destroy({
-		where: {
-			id,
-		},
-	});
+	const post = await posts.findOne({ where: { id } });
+	const image = post.image;
 
-	res.json("DELETED SUCCESSFULLY");
+	try {
+		const _path = path.join(__dirname, "../", image);
+
+		fs.unlink(_path, (err) => {
+			if (err) {
+				console.error(err);
+				return;
+			}
+
+			return res.json("Image terdelete");
+		});
+	} catch (error) {
+		return res.json(error);
+	}
+
+	// await posts.destroy({
+	// 	where: {
+	// 		id,
+	// 	},
+	// });
+
+	// res.json("DELETED SUCCESSFULLY");
 });
 
 module.exports = router;
